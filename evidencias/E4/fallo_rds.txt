@@ -1,0 +1,11 @@
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0100    185   0      0 100    185      0    182   00:01   00:01            182100    185   0      0 100    185      0     91   00:02   00:02             91100    185   0      0 100    185      0     60   00:03   00:03             60100    185   0      0 100    185      0     45   00:04   00:04             45100    248 100     63 100    185     12     36   00:05   00:05             45100    248 100     63 100    185     12     36   00:05   00:05             45100    248 100     63 100    185     12     36   00:05   00:05             45
+HTTP/1.1 503 Service Unavailable
+date: Wed, 30 Sep 2026 02:12:31 GMT
+server: uvicorn
+content-length: 63
+content-type: application/json
+x-instancia: 4bcd4ccc8d42
+
+{"detail":{"paso":"rds","mensaje":"No se pudo conectar a RDS"}}

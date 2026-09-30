@@ -1,0 +1,102 @@
+ Container lomax-catalogo-api-run-8939c91700eb Creating 
+ Container lomax-catalogo-api-run-8939c91700eb Created 
+
+=== 1. GET /categorias ===
+  GET /categorias -> HTTP 200  [{"id":1,"nombre":"Teclados"},{"id":2,"nombre":"Pantallas"},{"id":3,"nombre":"Mouses"}]
+    [OK]    200 y categorias de RDS
+    [OK]    coincide con RDS
+
+=== 2. POST /productos valido (201 PENDIENTE) ===
+  POST /productos -> HTTP 201  {"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","estado":"PENDIENTE"}
+    [OK]    201 con producto_id y PENDIENTE
+    producto_id = 27e2dfc4-8c88-4653-8e07-a45ae899ee52
+    [OK]    RDS: existe y esta PENDIENTE  ([('E4-1439296C', 'PENDIENTE')])
+    [OK]    DynamoDB: existe con atributos
+
+=== 3. GET /productos/{id} y GET /productos (pendiente no se lista) ===
+  GET /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52 -> HTTP 200  {"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","codigo":"E4-1439296C","nombre":"Teclado prueba E4","descripcion":"Producto creado por la prueba E4","precio":59.9,"categoria_id":1,"categoria":"Teclados","fecha":"2026-09-30T02:11:52.572624","estado":"PENDIENTE","atributos":{"conexion":"USB","distribucion":"Espanol"},"estado_procesamiento":"PEN
+    [OK]    200 con estado PENDIENTE
+  GET /productos -> HTTP 200  [{"producto_id":"debcdb62-7983-43c5-bb04-7771431d2598","codigo":"API-001","nombre":"Teclado de prueba API","descripcion":"Producto creado desde la API","precio":59.9,"categoria_id":1,"categoria":"Teclados","fecha":"2026-09-30T02:05:19.309342","estado":"PUBLICADO","atributos":{"conexion":"USB","distribucion":"Espanol"},"miniatura_key":"miniaturas/de
+    [OK]    el pendiente NO aparece en el catalogo
+
+=== 4. Codigo duplicado (409, sin registro extra) ===
+  POST /productos -> HTTP 409  {"detail":{"paso":"rds","mensaje":"Ya existe un producto con ese codigo"}}
+    [OK]    409
+    [OK]    RDS: sigue habiendo 1 solo con ese codigo
+
+=== 5. Entradas invalidas (400, sin registros parciales) ===
+  [precio negativo]
+  POST /productos -> HTTP 400  {"detail":{"paso":"validacion","mensaje":"'precio' debe ser un numero no negativo"}}
+    [OK]    400
+  [categoria inexistente]
+  POST /productos -> HTTP 400  {"detail":{"paso":"validacion","mensaje":"La categoria no existe"}}
+    [OK]    400
+  [falta nombre]
+  POST /productos -> HTTP 400  {"detail":{"paso":"validacion","mensaje":"'nombre' es obligatorio"}}
+    [OK]    400
+  [atributos vacios]
+  POST /productos -> HTTP 400  {"detail":{"paso":"validacion","mensaje":"'atributos' debe ser un objeto con al menos un atributo"}}
+    [OK]    400
+  [codigo vacio]
+  POST /productos -> HTTP 400  {"detail":{"paso":"validacion","mensaje":"'codigo' es obligatorio"}}
+    [OK]    400
+    [OK]    RDS: ninguno de los invalidos se guardo
+
+=== 6. Reprocesar sin imagen original (409) ===
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/reprocesar -> HTTP 409  {"detail":{"paso":"dynamodb","mensaje":"El producto no tiene imagen original registrada"}}
+    [OK]    409
+
+=== 7. Imagen: formato no permitido (415) ===
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 415  {"detail":{"paso":"validacion","mensaje":"Solo se permite JPEG o PNG"}}
+    [OK]    415
+
+=== 8. Imagen: mayor a 5 MB (413) ===
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 413  {"detail":{"paso":"validacion","mensaje":"El archivo supera 5 MB"}}
+    [OK]    413
+
+=== 9. Imagen invalida con tipo JPEG (415, queda PENDIENTE) ===
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 415  {"detail":{"paso":"lambda","mensaje":"Imagen invalida o no procesable: cannot identify image file <_io.BytesIO object at 0x7a8e3a5766b0>"}}
+    [OK]    415 con paso lambda
+    [OK]    RDS: sigue PENDIENTE
+    [OK]    DynamoDB: estado_procesamiento ERROR
+  GET /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 404  {"detail":{"paso":"dynamodb","mensaje":"Miniatura no disponible"}}
+    [OK]    GET imagen: 404
+
+=== 10. Imagen valida completa el MISMO producto (200 PUBLICADO) ===
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 200  {"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","estado":"PUBLICADO","miniatura_key":"miniaturas/27e2dfc4-8c88-4653-8e07-a45ae899ee52.jpg"}
+    [OK]    200 PUBLICADO
+    [OK]    RDS: PUBLICADO, un solo producto con ese codigo
+    [OK]    DynamoDB: estado LISTA y miniatura_key  (miniaturas/27e2dfc4-8c88-4653-8e07-a45ae899ee52.jpg)
+    [OK]    S3: miniatura existe  (5431 bytes)
+    dimensiones de la miniatura en S3: (300, 200)
+    [OK]    miniatura de 300x200 (proporcional)
+
+=== 11. GET /productos/{id}/imagen (200, mismos bytes que S3) ===
+  GET /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 200  <5431 bytes de imagen>
+    [OK]    200 con Content-Type image/jpeg
+    [OK]    SHA-256 del endpoint == SHA-256 de S3  (2bcb6c0fead14cc6)
+
+=== 12. Idempotencia: repetir imagen y reprocesar no duplican objetos ===
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/imagen -> HTTP 200  {"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","estado":"PUBLICADO","miniatura_key":"miniaturas/27e2dfc4-8c88-4653-8e07-a45ae899ee52.jpg"}
+  POST /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52/reprocesar -> HTTP 200  {"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","estado":"PUBLICADO","miniatura_key":"miniaturas/27e2dfc4-8c88-4653-8e07-a45ae899ee52.jpg"}
+    [OK]    reprocesar 200 PUBLICADO
+    [OK]    S3: un solo objeto de miniatura para el producto  (1)
+
+=== 13. GET /productos (solo publicados, con atributos y miniatura) ===
+  GET /productos -> HTTP 200  [{"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","codigo":"E4-1439296C","nombre":"Teclado prueba E4","descripcion":"Producto creado por la prueba E4","precio":59.9,"categoria_id":1,"categoria":"Teclados","fecha":"2026-09-30T02:11:52.572624","estado":"PUBLICADO","atributos":{"conexion":"USB","distribucion":"Espanol"},"miniatura_key":"miniatura
+    [OK]    200 e incluye el producto publicado
+    [OK]    trae atributos de DynamoDB
+    [OK]    todos estan PUBLICADO
+    [OK]    cantidad == PUBLICADOS en RDS  (3)
+
+=== 14. GET /productos/{id} detalle y 404 ===
+  GET /productos/27e2dfc4-8c88-4653-8e07-a45ae899ee52 -> HTTP 200  {"producto_id":"27e2dfc4-8c88-4653-8e07-a45ae899ee52","codigo":"E4-1439296C","nombre":"Teclado prueba E4","descripcion":"Producto creado por la prueba E4","precio":59.9,"categoria_id":1,"categoria":"Teclados","fecha":"2026-09-30T02:11:52.572624","estado":"PUBLICADO","atributos":{"conexion":"USB","distribucion":"Espanol"},"estado_procesamiento":"LIS
+    [OK]    200 PUBLICADO y LISTA
+  GET /productos/945b9bb2-ec64-428b-a3a1-f238bfc6220d -> HTTP 404  {"detail":{"paso":"rds","mensaje":"Producto no encontrado"}}
+    [OK]    inexistente: 404
+  GET /productos/abc -> HTTP 404  {"detail":{"paso":"api","mensaje":"Producto no encontrado"}}
+    [OK]    id mal formado: 404
+  GET /productos/7c25b898-85c1-4886-8db7-dc97adbc557c/imagen -> HTTP 404  {"detail":{"paso":"dynamodb","mensaje":"Miniatura no disponible"}}
+    [OK]    imagen de inexistente: 404
+
+RESULTADO: TODAS LAS VERIFICACIONES OK
