@@ -1,0 +1,35 @@
+services:
+  floci:
+    image: floci/floci:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - FLOCI_STORAGE_MODE=persistent
+      - FLOCI_STORAGE_PERSISTENT_PATH=/app/data
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - floci-data:/app/data
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ENDPOINT_URL=http://floci:4566
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - DB_HOST=floci
+      - DB_PORT=7001
+      - DB_NAME=lomax
+      - DB_USER=admin
+      - DB_PASSWORD=lomax12345
+      - BUCKET_ORIGINALES=lomax-originales
+      - BUCKET_MINIATURAS=lomax-miniaturas
+      - TABLA_DYNAMO=productos_atributos
+      - LAMBDA_NAME=procesar-miniatura
+    depends_on:
+      - floci
+
+volumes:
+  floci-data:
