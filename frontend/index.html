@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lomax - Catálogo</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Arial,sans-serif;background:#f4f6f8;color:#1f2933}
+header{background:#0b3d91;color:#fff;padding:12px 20px;display:flex;gap:20px;align-items:center}
+header a{color:#fff;text-decoration:none;font-weight:600}
+main{max-width:1000px;margin:20px auto;padding:0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px #0003;overflow:hidden;color:inherit;text-decoration:none;display:block}
+.card img{width:100%;height:150px;object-fit:contain;background:#e9edf2}
+.card div{padding:10px}
+form{background:#fff;padding:16px;border-radius:8px;display:grid;gap:12px;max-width:560px}
+label{display:grid;gap:4px;font-weight:600;font-size:14px}
+input,select,textarea{padding:8px;border:1px solid #bcc5d0;border-radius:6px;font:inherit}
+button{padding:10px 16px;border:0;border-radius:6px;background:#0b3d91;color:#fff;font:inherit;cursor:pointer}
+button:disabled{opacity:.5}
+#reint{background:#b45309}
+.msg{padding:10px;border-radius:6px;margin-top:8px}
+.ok{background:#d1fae5}.err{background:#fee2e2}.info{background:#e0e7ff}
+.det{display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:20px;background:#fff;padding:16px;border-radius:8px}
+.det img{width:100%;background:#e9edf2}
+.tag{padding:2px 8px;border-radius:10px;font-size:12px;background:#fde68a}
+.tag.PUBLICADO{background:#a7f3d0}
+table{border-collapse:collapse}td{border:1px solid #d5dbe3;padding:6px 10px}
+@media(max-width:640px){.det{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><span>Lomax S.A.</span><a href="#/">Catálogo</a><a href="#/nuevo">Registrar producto</a></header>
+<main id="app"></main>
+<script>
+const $=s=>document.querySelector(s), app=$('#app');
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CAMPOS={
+  Teclados:[['conexion','Conexión','text'],['distribucion','Distribución','text']],
+  Pantallas:[['pulgadas','Pulgadas','number'],['resolucion','Resolución','text']],
+  Mouses:[['conexion','Conexión','text'],['dpi','DPI','number']]};
+
+async function api(ruta,opt){
+  let r;
+  try{r=await fetch('/api'+ruta,opt)}
+  catch(e){throw{status:0,paso:'red',mensaje:'No se pudo conectar con el servidor'}}
+  if(!r.ok){
+    let d={};try{d=(await r.json()).detail||{}}catch(e){}
+    throw{status:r.status,paso:d.paso||'api',mensaje:d.mensaje||('Error '+r.status)}
+  }
+  return r.json();
+}
+const errHtml=e=>`<div class="msg err">✖ ${esc(e.mensaje)} (paso: ${esc(e.paso)}, HTTP ${esc(e.status)})</div>`;
+
+async function catalogo(){
+  app.innerHTML='<h2>Catálogo</h2><p>Cargando…</p>';
+  try{
+    const ps=await api('/productos');
+    app.innerHTML=`<h2>Catálogo (${ps.length} productos)</h2>`+(ps.length?
+      `<div class="grid">${ps.map(p=>`<a class="card" href="#/producto/${esc(p.producto_id)}"><img src="/api${esc(p.imagen_url)}" alt="${esc(p.nombre)}" loading="lazy"><div><b>${esc(p.nombre)}</b><br>$ ${p.precio.toFixed(2)}<br><small>${esc(p.categoria)}</small></div></a>`).join('')}</div>`
+      :'<p>Aún no hay productos publicados.</p>');
+  }catch(e){app.innerHTML=errHtml(e)}
+}
+
+async function detalle(id){
+  app.innerHTML='<p>Cargando…</p>';
+  try{
+    const p=await api('/productos/'+encodeURIComponent(id));
+    app.innerHTML=`<p><a href="#/">← Catálogo</a></p><div class="det">
+      <img src="/api/productos/${esc(p.producto_id)}/imagen" alt="" onerror="this.style.display='none'">
+      <div><h2>${esc(p.nombre)}</h2>
+      <p><span class="tag ${esc(p.estado)}">${esc(p.estado)}</span> ${esc(p.categoria)} · Código ${esc(p.codigo)}</p>
+      <p><b>$ ${p.precio.toFixed(2)}</b></p><p>${esc(p.descripcion)}</p>
+      <h3>Atributos</h3><table>${Object.entries(p.atributos).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>
+      <p><small>producto_id: ${esc(p.producto_id)}<br>Imagen: ${esc(p.estado_procesamiento)}</small></p></div></div>`;
+  }catch(e){app.innerHTML='<p><a href="#/">← Catálogo</a></p>'+errHtml(e)}
+}
+
+let pend=null;
+async function nuevo(){
+  pend=null;
+  let cats;
+  try{cats=await api('/categorias')}catch(e){app.innerHTML=errHtml(e);return}
+  app.innerHTML=`<h2>Registrar producto</h2>
+  <form id="f" novalidate>
+    <label>Código<input id="codigo" maxlength="50"></label>
+    <label>Nombre<input id="nombre" maxlength="150"></label>
+    <label>Descripción<textarea id="desc" rows="3"></textarea></label>
+    <label>Precio<input id="precio" type="number" step="0.01" min="0"></label>
+    <label>Categoría<select id="cat">${cats.map(c=>`<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}</select></label>
+    <div id="attrs" style="display:grid;gap:12px"></div>
+    <label>Fotografía (JPEG o PNG, máx. 5 MB)<input id="foto" type="file" accept="image/jpeg,image/png"></label>
+    <button id="enviar">Registrar</button>
+    <button id="reint" type="button" hidden>Reintentar imagen</button>
+    <div id="estado"></div>
+  </form>`;
+  const msg=(h,c='info')=>{$('#estado').innerHTML=`<div class="msg ${c}">${h}</div>`};
+  const attrs=()=>{
+    const c=cats.find(x=>x.id==$('#cat').value);
+    $('#attrs').innerHTML=(CAMPOS[c&&c.nombre]||[['detalle','Detalle','text']])
+      .map(([k,l,t])=>`<label>${l}<input data-k="${k}" data-t="${t}" type="${t}" step="any"></label>`).join('');
+  };
+  $('#cat').onchange=attrs; attrs();
+  const validarFoto=()=>{
+    const f=$('#foto').files[0];
+    if(!f)return'Seleccione una fotografía';
+    if(!['image/jpeg','image/png'].includes(f.type))return'La fotografía debe ser JPEG o PNG';
+    if(f.size>5*1024*1024)return'La fotografía supera 5 MB';
+    return null;
+  };
+  const validar=()=>{
+    if(!$('#codigo').value.trim())return'El código es obligatorio';
+    if(!$('#nombre').value.trim())return'El nombre es obligatorio';
+    if(!$('#desc').value.trim())return'La descripción es obligatoria';
+    const p=$('#precio').value;
+    if(p===''||Number(p)<0)return'El precio debe ser un número mayor o igual a 0';
+    for(const i of document.querySelectorAll('#attrs input'))if(!i.value.trim())return'Complete todos los atributos';
+    return validarFoto();
+  };
+  const fallo=e=>{
+    let h='✖ '+esc(e.mensaje)+' (paso: '+esc(e.paso)+', HTTP '+esc(e.status)+')';
+    if(pend){
+      h+=`<br>El producto <a href="#/producto/${esc(pend)}">${esc(pend)}</a> quedó PENDIENTE y no aparece en el catálogo. Puede reintentar sin duplicarlo.`;
+      $('#reint').hidden=false;
+    }
+    msg(h,'err');
+  };
+  const imagen=async()=>{
+    const f=$('#foto').files[0];
+    let r;
+    if(f){
+      const e=validarFoto(); if(e){msg(esc(e),'err');return}
+      const fd=new FormData();fd.append('archivo',f);
+      r=await api('/productos/'+pend+'/imagen',{method:'POST',body:fd});
+    }else r=await api('/productos/'+pend+'/reprocesar',{method:'POST'});
+    msg(`✔ Producto ${esc(r.producto_id)}: ${esc(r.estado)}. <a href="#/producto/${esc(r.producto_id)}">Ver detalle</a>`,'ok');
+    pend=null;$('#reint').hidden=true;$('#f').reset();attrs();
+  };
+  const reintentar=async()=>{msg('Reintentando…');try{await imagen()}catch(e){fallo(e)}};
+  $('#reint').onclick=reintentar;
+  $('#f').onsubmit=async ev=>{
+    ev.preventDefault();
+    if(pend)return reintentar();
+    const err=validar(); if(err){msg(esc(err),'err');return}
+    const atributos={};
+    document.querySelectorAll('#attrs input').forEach(i=>{const v=i.value.trim();atributos[i.dataset.k]=i.dataset.t==='number'?Number(v):v});
+    $('#enviar').disabled=true; msg('Registrando producto…');
+    try{
+      const r=await api('/productos',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({codigo:$('#codigo').value.trim(),nombre:$('#nombre').value.trim(),
+          descripcion:$('#desc').value.trim(),precio:Number($('#precio').value),
+          categoria_id:Number($('#cat').value),atributos})});
+      pend=r.producto_id;
+      msg('Producto '+esc(pend)+' creado (PENDIENTE). Procesando imagen…');
+      await imagen();
+    }catch(e){fallo(e)}
+    $('#enviar').disabled=false;
+  };
+}
+
+function ruta(){
+  const h=location.hash||'#/', m=h.match(/^#\/producto\/(.+)$/);
+  if(m)detalle(m[1]); else if(h==='#/nuevo')nuevo(); else catalogo();
+}
+addEventListener('hashchange',ruta); ruta();
+</script>
+</body>
+</html>

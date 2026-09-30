@@ -1,0 +1,7 @@
+  nombre   | count 
+-----------+-------
+ Mouses    |     6
+ Pantallas |     7
+ Teclados  |    11
+(3 rows)
+

@@ -12,8 +12,6 @@ services:
 
   api:
     build: ./api
-    ports:
-      - "8000:8000"
     environment:
       - AWS_ENDPOINT_URL=http://floci:4566
       - AWS_DEFAULT_REGION=us-east-1
@@ -30,6 +28,17 @@ services:
       - LAMBDA_NAME=procesar-miniatura
     depends_on:
       - floci
+
+  frontend:
+    build: ./frontend
+
+  proxy:
+    build: ./proxy
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+      - frontend
 
 volumes:
   floci-data:
