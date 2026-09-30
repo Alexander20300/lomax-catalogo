@@ -1,0 +1,26 @@
+{
+    "Item": {
+        "producto_id": {
+            "S": "aaaaaaaa-0000-0000-0000-000000000001"
+        },
+        "atributos": {
+            "M": {
+                "conexion": {
+                    "S": "USB"
+                },
+                "distribucion": {
+                    "S": "Espanol"
+                }
+            }
+        },
+        "imagen_original_key": {
+            "S": "originales/aaaaaaaa-0000-0000-0000-000000000001.jpg"
+        },
+        "miniatura_key": {
+            "S": "miniaturas/aaaaaaaa-0000-0000-0000-000000000001.jpg"
+        },
+        "estado_procesamiento": {
+            "S": "LISTA"
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "AcceptRanges": "bytes",
+    "LastModified": "2026-09-30T01:36:48+00:00",
+    "ContentLength": 5431,
+    "ETag": "\"ee3b2a1a8d8db25e103eaebdb8b99b2e\"",
+    "ChecksumCRC32": "kGn7vg==",
+    "ChecksumType": "FULL_OBJECT",
+    "ContentType": "image/jpeg",
+    "Metadata": {},
+    "StorageClass": "STANDARD"
+}
