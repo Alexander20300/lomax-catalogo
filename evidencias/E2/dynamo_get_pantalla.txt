@@ -1,0 +1,26 @@
+{
+    "Item": {
+        "producto_id": {
+            "S": "aaaaaaaa-0000-0000-0000-000000000002"
+        },
+        "atributos": {
+            "M": {
+                "pulgadas": {
+                    "N": "24"
+                },
+                "resolucion": {
+                    "S": "1920x1080"
+                }
+            }
+        },
+        "imagen_original_key": {
+            "NULL": true
+        },
+        "miniatura_key": {
+            "NULL": true
+        },
+        "estado_procesamiento": {
+            "S": "PENDIENTE"
+        }
+    }
+}

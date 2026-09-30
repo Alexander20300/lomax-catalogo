@@ -1,0 +1,6 @@
+             producto_id              | codigo  |  estado   
+--------------------------------------+---------+-----------
+ aaaaaaaa-0000-0000-0000-000000000002 | PAN-001 | PENDIENTE
+ aaaaaaaa-0000-0000-0000-000000000001 | TEC-001 | PENDIENTE
+(2 rows)
+

@@ -1,0 +1,7 @@
+{
+  "producto_id": {"S": "aaaaaaaa-0000-0000-0000-000000000001"},
+  "atributos": {"M": {"conexion": {"S": "USB"}, "distribucion": {"S": "Espanol"}}},
+  "imagen_original_key": {"NULL": true},
+  "miniatura_key": {"NULL": true},
+  "estado_procesamiento": {"S": "PENDIENTE"}
+}

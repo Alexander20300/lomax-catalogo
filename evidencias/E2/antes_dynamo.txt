@@ -1,0 +1,55 @@
+{
+    "Items": [
+        {
+            "producto_id": {
+                "S": "aaaaaaaa-0000-0000-0000-000000000001"
+            },
+            "atributos": {
+                "M": {
+                    "conexion": {
+                        "S": "USB"
+                    },
+                    "distribucion": {
+                        "S": "Espanol"
+                    }
+                }
+            },
+            "imagen_original_key": {
+                "NULL": true
+            },
+            "miniatura_key": {
+                "NULL": true
+            },
+            "estado_procesamiento": {
+                "S": "PENDIENTE"
+            }
+        },
+        {
+            "producto_id": {
+                "S": "aaaaaaaa-0000-0000-0000-000000000002"
+            },
+            "atributos": {
+                "M": {
+                    "pulgadas": {
+                        "N": "24"
+                    },
+                    "resolucion": {
+                        "S": "1920x1080"
+                    }
+                }
+            },
+            "imagen_original_key": {
+                "NULL": true
+            },
+            "miniatura_key": {
+                "NULL": true
+            },
+            "estado_procesamiento": {
+                "S": "PENDIENTE"
+            }
+        }
+    ],
+    "Count": 2,
+    "ScannedCount": 2,
+    "ConsumedCapacity": null
+}

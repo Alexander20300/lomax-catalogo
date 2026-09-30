@@ -1,0 +1,17 @@
+{
+    "Items": [
+        {
+            "producto_id": {
+                "S": "aaaaaaaa-0000-0000-0000-000000000001"
+            }
+        },
+        {
+            "producto_id": {
+                "S": "aaaaaaaa-0000-0000-0000-000000000002"
+            }
+        }
+    ],
+    "Count": 2,
+    "ScannedCount": 2,
+    "ConsumedCapacity": null
+}

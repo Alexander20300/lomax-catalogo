@@ -1,0 +1,28 @@
+=== 1. Insercion valida ===
+             producto_id              |   codigo    
+--------------------------------------+-------------
+ 6404ae3a-f3f3-40cb-81d2-28a516252d7f | TEST-VALIDO
+(1 row)
+
+INSERT 0 1
+=== 2. Codigo duplicado (debe fallar) ===
+ERROR:  duplicate key value violates unique constraint "producto_codigo_key"
+DETAIL:  Key (codigo)=(TEC-001) already exists.
+=== 3. Precio negativo (debe fallar) ===
+ERROR:  new row for relation "producto" violates check constraint "producto_precio_check"
+DETAIL:  Failing row contains (d50da98e-02b5-4bf5-87d1-dfaf051fdd05, TEST-NEG, Negativo, Prueba, -5.00, 1, 2026-09-30 01:23:50.762879, PENDIENTE).
+=== 4. Categoria inexistente (debe fallar) ===
+ERROR:  insert or update on table "producto" violates foreign key constraint "producto_categoria_id_fkey"
+DETAIL:  Key (categoria_id)=(999) is not present in table "categoria".
+=== 5. Nombre nulo (debe fallar) ===
+ERROR:  null value in column "nombre" of relation "producto" violates not-null constraint
+DETAIL:  Failing row contains (f78fdc87-9b86-46b8-ae0a-677a034f3e75, TEST-NULO, null, Prueba, 10.00, 1, 2026-09-30 01:23:50.76454, PENDIENTE).
+=== Verificacion: no quedaron registros parciales ===
+   codigo    
+-------------
+ PAN-001
+ TEC-001
+ TEST-VALIDO
+(3 rows)
+
+DELETE 1

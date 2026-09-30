@@ -1,0 +1,11 @@
+=== RDS ===
+Contenedor RDS: floci-rds-db-893CD789256A4428902FD8ED-f296b8
+NOTICE:  relation "categoria" already exists, skipping
+CREATE TABLE
+CREATE TABLE
+NOTICE:  relation "producto" already exists, skipping
+INSERT 0 0
+INSERT 0 0
+INSERT 0 0
+=== DynamoDB ===
+=== Listo ===
